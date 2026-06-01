@@ -1,0 +1,107 @@
+<!DOCYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JEE Elite Tracker</title>
+    <style>
+        :root { --bg: #0d0d0d; --card: #1a1a1a; --text: #d4d4d4; --border: #333; --accent: #7a7a7a; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        
+        /* Navigation */
+        nav { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; justify-content: center; }
+        nav button { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 12px 18px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        nav button:hover { border-color: #555; }
+
+        /* Pages */
+        .page { display: none; max-width: 500px; margin: 0 auto; }
+        .active { display: block; }
+
+        /* Aesthetic Cards */
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px; }
+        h2 { border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #fff; }
+        
+        /* Form Inputs */
+        label { display: block; margin-top: 15px; font-size: 0.9rem; color: var(--accent); }
+        input { background: #111; border: 1px solid var(--border); color: #fff; padding: 12px; width: 100%; border-radius: 6px; box-sizing: border-box; margin-top: 5px; }
+        button.save { width: 100%; margin-top: 20px; background: #333; border: none; padding: 15px; color: #fff; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <button onclick="showPage('daily')">Daily Log</button>
+    <button onclick="showPage('stats')">Monthly Stats</button>
+    <button onclick="showPage('rules')">Protocol Rules</button>
+</nav>
+
+<div id="daily" class="page active">
+    <h2>Daily Entry</h2>
+    <div class="card">
+        <label>Study Hours (Exclude Coaching/School)</label>
+        <input type="number" id="hours" placeholder="0.0">
+        <label>Total Points Scored</label>
+        <input type="number" id="points" placeholder="Points">
+        <label>Subject/Concept/Book</label>
+        <input type="text" id="details" placeholder="e.g. Physics/Kinematics/Irodov">
+        <button class="save" onclick="saveDay()">Calculate & Save</button>
+    </div>
+</div>
+
+<div id="stats" class="page">
+    <h2>Monthly Stats</h2>
+    <div id="statsContainer" class="card"></div>
+</div>
+
+<div id="rules" class="page">
+    <h2>Rules & Point System</h2>
+    <div class="card">
+        <p><strong>1. Distraction:</strong> 5 Tally Marks (-10 pts).</p>
+        <p><strong>2. Point Breakdown:</strong></p>
+        <ul>
+            <li>Basic: 5 pts</li>
+            <li>Mains: 10-15 pts</li>
+            <li>Intermediate: 15-20 pts</li>
+            <li>Adv/Olympiad: 30-40 pts</li>
+            <li>INPhO/Pathfinder: 60 pts</li>
+        </ul>
+        <p><strong>3. Density:</strong> Total Points / Self-study Hours.</p>
+    </div>
+</div>
+
+<script>
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+    }
+
+    function saveDay() {
+        const hours = parseFloat(document.getElementById('hours').value);
+        const points = parseFloat(document.getElementById('points').value);
+        const details = document.getElementById('details').value;
+        const density = (points / hours).toFixed(2);
+
+        const entry = { date: new Date().toLocaleDateString(), points, hours, density, details };
+        let history = JSON.parse(localStorage.getItem('jeeHistory') || '[]');
+        history.push(entry);
+        localStorage.setItem('jeeHistory', JSON.stringify(history));
+        
+        alert(`Saved! Density for today: ${density}`);
+        renderStats();
+    }
+
+    function renderStats() {
+        const history = JSON.parse(localStorage.getItem('jeeHistory') || '[]');
+        const container = document.getElementById('statsContainer');
+        container.innerHTML = history.map(h => `
+            <div style="border-bottom:1px solid #333; padding:10px 0;">
+                <strong>${h.date}</strong><br>
+                Points: ${h.points} | Hours: ${h.hours} | <b>Density: ${h.density}</b><br>
+                <small style="color:var(--accent)">${h.details}</small>
+            </div>
+        `).join('');
+    }
+    renderStats();
+</script>
+</body>
+</html>
